@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DotNet.Testcontainers" Version="1.5.0-beta.20201201.11" />
+        <PackageReference Include="Evolve" Version="2.4.0" />
+        <PackageReference Include="Npgsql" Version="5.0.1.1" />
+        <PackageReference Include="NUnit" Version="3.12.0" />
+        <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Api" />
+      <Folder Include="Domain" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DemoApp\DemoApp.csproj" />
+    </ItemGroup>
+
+</Project>
