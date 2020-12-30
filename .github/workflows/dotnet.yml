@@ -1,4 +1,4 @@
-name: .NET
+name: TC-Example-Build
 
 on:
   push:
