@@ -40,12 +40,19 @@ namespace DemoApp.Infrastructure.Persistence
             return article;
         }
 
-        public Task<bool> SetArticlePrice(int articleId, decimal newPrice)
+        public async Task CreateNewArticle(Article article)
+        {
+            await _connection.QueryAsync(
+                @"INSERT INTO articles(name,description,price,created) 
+                        VALUES(@Name, @Description, @Price, @Created)", article);
+        }
+
+        public Task UpdateArticlePrice(int articleId, decimal newPrice)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> SetArticleName(int articleId, string newName)
+        public Task UpdateArticleName(int articleId, string newName)
         {
             throw new NotImplementedException();
         }

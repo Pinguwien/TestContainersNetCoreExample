@@ -8,10 +8,10 @@ namespace DemoApp.Domain
     {
         Task<IEnumerable<Article>> GetArticles();
         Task<IEnumerable<Article>> GetArticlesByName(string articleName);
-
         Task<Article> GetArticleById(int id);
-        Task<bool> SetArticleName(int articleId, string newName);
-        Task<bool> SetArticlePrice(int articleId, decimal newPrice);
+        Task CreateNewArticle(Article article);
+        Task UpdateArticleName(int articleId, string newName);
+        Task UpdateArticlePrice(int articleId, decimal newPrice);
 
     }
 }
