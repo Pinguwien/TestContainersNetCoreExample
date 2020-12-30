@@ -70,6 +70,32 @@ namespace DemoAppTests.Infrastructure.Persistence
             await PostgresContainer.DisposeAsync();
         }
 
+        [Test]
+        public async Task SucceedsWhenPriceGetsChangedWhenUpdated()
+        {
+            const int idParam = 1;
+            const decimal newPrice = 89.00m;
+            var cut = new DapperArticlesRepository(
+                new NpgsqlConnection(PostgresContainer.ConnectionString));
+
+            await cut.UpdateArticlePrice(idParam, newPrice);
+            var result = await cut.GetArticleById(idParam);
+            Assert.That(result.Price, Is.EqualTo(newPrice));
+        }
+        
+        [Test]
+        public async Task SucceedsWhenNameGetsChangedWhenUpdated()
+        {
+            const int idParam = 1;
+            const string newName = "FirstArticle";
+            var cut = new DapperArticlesRepository(
+                new NpgsqlConnection(PostgresContainer.ConnectionString));
+
+            await cut.UpdateArticleName(idParam, newName);
+            var result = await cut.GetArticleById(idParam);
+            Assert.That(result.Name, Is.EqualTo(newName));
+        }
+        
         private void FillDb()
         {
             var conn = new NpgsqlConnection(PostgresContainer.ConnectionString);

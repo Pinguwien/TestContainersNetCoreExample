@@ -47,14 +47,20 @@ namespace DemoApp.Infrastructure.Persistence
                         VALUES(@Name, @Description, @Price, @Created)", article);
         }
 
-        public Task UpdateArticlePrice(int articleId, decimal newPrice)
+        public async Task UpdateArticlePrice(int articleId, decimal newPrice)
         {
-            throw new NotImplementedException();
+            await _connection.ExecuteAsync(@"UPDATE articles 
+                                                   SET price = @NewPrice 
+                                                   WHERE articleId = @ArticleId", 
+                                            new { NewPrice = newPrice, ArticleId = articleId } );
         }
 
-        public Task UpdateArticleName(int articleId, string newName)
+        public async Task UpdateArticleName(int articleId, string newName)
         {
-            throw new NotImplementedException();
+            await _connection.ExecuteAsync(@"UPDATE articles 
+                                                   SET name = @NewName 
+                                                   WHERE articleId = @ArticleId", 
+                new { NewName = newName, ArticleId = articleId } );
         }
     }
 }
