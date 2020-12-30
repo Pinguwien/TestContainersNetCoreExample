@@ -11,15 +11,16 @@ namespace DemoAppTests.Infrastructure.Persistence
     [TestFixture]
     public class MyFirstIntTest
     {
-        public PostgreSqlTestcontainer PostgresContainer { get;  set; }
+        private PostgreSqlTestcontainer PostgresContainer { get; set; }
+        private static string _unixSocketAddr = "unix:/var/run/docker.sock";
 
         [SetUp]
         public async Task SetUp()
         {
-            var fallback = "unix:/var/run/docker.sock";
-            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST");
+            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? _unixSocketAddr;
+
             var testcontainersBuilder = new TestcontainersBuilder<PostgreSqlTestcontainer>()
-                .WithDockerEndpoint(dockerEndpoint ?? fallback)
+                .WithDockerEndpoint(dockerEndpoint)
                 .WithDatabase(new PostgreSqlTestcontainerConfiguration
                 {
                     Database = "demo-db",
@@ -29,9 +30,8 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithImage("postgres:13.1-alpine").WithCleanUp(true);
 
             PostgresContainer = testcontainersBuilder.Build();
-            
+
             await PostgresContainer.StartAsync();
-            
         }
 
         [Test]
@@ -44,9 +44,9 @@ namespace DemoAppTests.Infrastructure.Persistence
             cmd.ExecuteReader();
         }
 
-        //only for showing via docker stats that another container is used.
+        //only for showing via docker stats-command that another container is used.
         [Test]
-        public void GivenTestcontainersIsInstalledCheckIfTheContainerIsRunningSecondTime()
+        public void GivenTestcontainersIsInstalledCheckIfDifferentContainerIsRunningSecondForSecondTest()
         {
             using var connection = new NpgsqlConnection(PostgresContainer.ConnectionString);
             connection.Open();
@@ -54,8 +54,7 @@ namespace DemoAppTests.Infrastructure.Persistence
             using var cmd = new NpgsqlCommand {Connection = connection, CommandText = "SELECT 1"};
             cmd.ExecuteReader();
         }
-        
-        // docker stats -> liveansicht 
+
         [TearDown]
         public async Task TearDown()
         {

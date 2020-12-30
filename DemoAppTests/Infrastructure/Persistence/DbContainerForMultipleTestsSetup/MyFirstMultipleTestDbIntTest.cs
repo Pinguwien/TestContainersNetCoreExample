@@ -1,8 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using DemoApp.Domain;
-using DemoApp.Infrastructure.Persistence;
 using Npgsql;
 using NUnit.Framework;
 
@@ -10,11 +5,9 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
 {
     public class MyFirstMultipleTestDbIntTest
     {
-        
         [Test]
         public void SucceedsWhenAccessToPostgresTestcontainerIsGenerallyGiven()
         {
-            
             using var connection = new NpgsqlConnection(BaseFixture.PostgresContainer.ConnectionString);
             connection.Open();
             using var cmd = new NpgsqlCommand {Connection = connection, CommandText = "SELECT 1"};
@@ -22,7 +15,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
             connection.Close();
         }
 
-        //see via docker stats. or get the name from container and assert here, but thats ugly (you cant start this test on its own then)
+        //only tto demonstrate that it is the same container with the fixture. see docker stats.
         [Test]
         public void SucceedsWhenSameContainerIsStillRunningForMoreThanOneTest()
         {

@@ -13,20 +13,19 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
     [SetUpFixture]
     public class BaseFixture
     {
+        private static string _pathToMigrations = "../../../../DemoApp/Infrastructure/Persistence/Migrations";
+        private static string _unixSocketAddr = "unix:/var/run/docker.sock";
+        private static string _pathToTestData = "../../../TestData/";
         public static PostgreSqlTestcontainer PostgresContainer { get; private set; }
 
-        //TODO: fährt hoch aber realmimport nich möglich. cliscript evtl? aber alles unschön ohne wait.for(http) mit auth.
-        //public static TestcontainersContainer KeycloakContainer { get; private set; }
-
-        // docker stats -> liveansicht
+        // use e.g. docker stats to have a live view of running containers
         [OneTimeSetUp]
         public async Task SetupOnce()
         {
-            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST");
-            var fallback = "unix:/var/run/docker.sock";
-
+            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? _unixSocketAddr;
+            
             var postgresContainerBuilder = new TestcontainersBuilder<PostgreSqlTestcontainer>()
-                .WithDockerEndpoint(dockerEndpoint ?? fallback)
+                .WithDockerEndpoint(dockerEndpoint)
                 .WithDatabase(new PostgreSqlTestcontainerConfiguration
                 {
                     Database = "demo-db",
@@ -39,33 +38,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
 
             PostgresContainer = postgresContainerBuilder.Build();
 
-            //TODO
-            /*var keycloakContainerBuilder = new TestcontainersBuilder<TestcontainersContainer>()
-                .WithDockerEndpoint(dockerEndpoint)
-                .WithImage("jboss/keycloak:12.0.1")
-                .WithName("tc-Keycloak")
-                .WithMount("/Users/dguhr/git/TestContainersDemo/DemoAppTests/example-realm.json", "/tmp/example-realm.json")
-                .WithCommand("-c standalone.xml", // don't start infinispan cluster
-                    "-b 0.0.0.0", // ensure proper binding
-                    "-Dkeycloak.profile.feature.upload_scripts=enabled")
-                .WithPortBinding(8080)
-                //.WithEnvironment("KEYCLOAK_USER", "admin")
-                //.WithEnvironment("KEYCLOAK_PASSWORD", "admin")
-                .WithEnvironment("KEYCLOAK_IMPORT", "/Users/dguhr/git/TestContainersDemo/DemoAppTests/example-realm.json")
-                .WithWaitStrategy(
-                    Wait.ForUnixContainer()
-                        .UntilFileExists("/tmp/example-realm.json")
-                        .UntilPortIsAvailable(8080))
-                .WithCleanUp(true);
-            
-            KeycloakContainer = keycloakContainerBuilder.Build();*/
-
             await PostgresContainer.StartAsync();
-            //await KeycloakContainer.StartAsync();
-            //var client = new HttpClient();
-
-            //var resp = await client.GetAsync("http://localhost:8080/auth");
-
 
             FillDb();
         }
@@ -76,7 +49,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
 
             var evolve = new Evolve.Evolve(conn, msg => Debug.WriteLine(msg))
             {
-                Locations = new[] {"../../../../DemoApp/Infrastructure/Persistence/Migrations", "../../../TestData/"}
+                Locations = new[] {_pathToMigrations, _pathToTestData}
             };
             evolve.Migrate();
         }
@@ -86,9 +59,6 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
         {
             await PostgresContainer.StopAsync();
             await PostgresContainer.DisposeAsync(); //important for the event to cleanup!
-
-            //await KeycloakContainer.StopAsync();
-            //await KeycloakContainer.DisposeAsync();
         }
     }
 }

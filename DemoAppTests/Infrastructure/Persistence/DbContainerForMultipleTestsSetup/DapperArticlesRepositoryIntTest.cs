@@ -58,7 +58,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
         }
 
         [Test]
-        public async Task SucceedsWhenInvalidOperationExceptionIsThrownWhenGetArticleByIdIsCalledWithNonExistentId()
+        public void SucceedsWhenInvalidOperationExceptionIsThrownWhenGetArticleByIdIsCalledWithNonExistentId()
         {
             const int idParam = 999;
             var cut = new DapperArticlesRepository(
