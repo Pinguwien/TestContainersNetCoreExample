@@ -63,13 +63,6 @@ namespace DemoAppTests.Infrastructure.Persistence
             Assert.That(created.Name, Is.EqualTo(mockArticle.Name));
         }
 
-        [TearDown]
-        public async Task TearDown()
-        {
-            await PostgresContainer.StopAsync();
-            await PostgresContainer.DisposeAsync();
-        }
-
         [Test]
         public async Task SucceedsWhenPriceGetsChangedWhenUpdated()
         {
@@ -82,7 +75,7 @@ namespace DemoAppTests.Infrastructure.Persistence
             var result = await cut.GetArticleById(idParam);
             Assert.That(result.Price, Is.EqualTo(newPrice));
         }
-        
+
         [Test]
         public async Task SucceedsWhenNameGetsChangedWhenUpdated()
         {
@@ -94,6 +87,13 @@ namespace DemoAppTests.Infrastructure.Persistence
             await cut.UpdateArticleName(idParam, newName);
             var result = await cut.GetArticleById(idParam);
             Assert.That(result.Name, Is.EqualTo(newName));
+        }
+
+        [TearDown]
+        public async Task TearDown()
+        {
+            await PostgresContainer.StopAsync();
+            await PostgresContainer.DisposeAsync();
         }
         
         private void FillDb()
