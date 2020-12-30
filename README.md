@@ -3,8 +3,7 @@
  A .NET Core example using Testcontainers.net (unofficial version from HofmeisterAn), evolve and stuff.
 
 ## Status
-[![Actions Status](https://github.com/pinguwien/{repo}/workflows/{workflow_name}/badge.svg)](https://github.com/{owner}/{repo}/actions)
-
+![TC-Example-Build](https://github.com/Pinguwien/TestContainersExample/workflows/TC-Example-Build/badge.svg)
 ## What it does
 This demo shows the basic concepts of testcontainers by spinning up a postgres container in the tests to do some integration testing using a postgres db 
 
