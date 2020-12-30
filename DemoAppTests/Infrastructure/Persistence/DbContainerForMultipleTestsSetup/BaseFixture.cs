@@ -23,8 +23,10 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
         public async Task SetupOnce()
         {
             var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST");
+            var fallback = "unix:/var/run/docker.sock";
+
             var postgresContainerBuilder = new TestcontainersBuilder<PostgreSqlTestcontainer>()
-                .WithDockerEndpoint(dockerEndpoint)
+                .WithDockerEndpoint(dockerEndpoint ?? fallback)
                 .WithDatabase(new PostgreSqlTestcontainerConfiguration
                 {
                     Database = "demo-db",
