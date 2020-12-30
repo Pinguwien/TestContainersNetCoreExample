@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Containers.Builders;
 using DotNet.Testcontainers.Containers.Configurations.Databases;
@@ -23,7 +22,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
         public async Task SetupOnce()
         {
             var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? _unixSocketAddr;
-            
+
             var postgresContainerBuilder = new TestcontainersBuilder<PostgreSqlTestcontainer>()
                 .WithDockerEndpoint(dockerEndpoint)
                 .WithDatabase(new PostgreSqlTestcontainerConfiguration
