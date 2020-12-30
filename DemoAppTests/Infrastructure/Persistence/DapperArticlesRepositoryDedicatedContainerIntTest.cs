@@ -44,7 +44,7 @@ namespace DemoAppTests.Infrastructure.Persistence
         }
 
         [Test]
-        public async Task SucceedsWhenInsertReturnsIdOfNewArticle()
+        public async Task SucceedsWhenArticleGetsInsertedCorrectly()
         {
             var mockArticle = new Article()
             {

@@ -19,7 +19,7 @@ namespace DemoAppTests.Infrastructure.Persistence
         {
             var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? _unixSocketAddr;
 
-            var testcontainersBuilder = new TestcontainersBuilder<PostgreSqlTestcontainer>()
+            var postgresBuilder = new TestcontainersBuilder<PostgreSqlTestcontainer>()
                 .WithDockerEndpoint(dockerEndpoint)
                 .WithDatabase(new PostgreSqlTestcontainerConfiguration
                 {
@@ -29,7 +29,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                 })
                 .WithImage("postgres:13.1-alpine").WithCleanUp(true);
 
-            PostgresContainer = testcontainersBuilder.Build();
+            PostgresContainer = postgresBuilder.Build();
 
             await PostgresContainer.StartAsync();
         }
