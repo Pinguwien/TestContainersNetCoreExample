@@ -12,6 +12,5 @@ namespace DemoApp.Domain
         Task CreateNewArticle(Article article);
         Task UpdateArticleName(int articleId, string newName);
         Task UpdateArticlePrice(int articleId, decimal newPrice);
-
     }
 }

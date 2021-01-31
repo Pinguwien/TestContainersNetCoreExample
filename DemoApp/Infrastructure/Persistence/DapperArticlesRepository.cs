@@ -51,16 +51,16 @@ namespace DemoApp.Infrastructure.Persistence
         {
             await _connection.ExecuteAsync(@"UPDATE articles 
                                                    SET price = @NewPrice 
-                                                   WHERE articleId = @ArticleId", 
-                                            new { NewPrice = newPrice, ArticleId = articleId } );
+                                                   WHERE articleId = @ArticleId",
+                new {NewPrice = newPrice, ArticleId = articleId});
         }
 
         public async Task UpdateArticleName(int articleId, string newName)
         {
             await _connection.ExecuteAsync(@"UPDATE articles 
                                                    SET name = @NewName 
-                                                   WHERE articleId = @ArticleId", 
-                new { NewName = newName, ArticleId = articleId } );
+                                                   WHERE articleId = @ArticleId",
+                new {NewName = newName, ArticleId = articleId});
         }
     }
 }

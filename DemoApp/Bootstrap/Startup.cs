@@ -19,14 +19,14 @@ namespace DemoApp.Bootstrap
         {
             Configuration = configuration;
         }
-        
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IArticlesRepository, DapperArticlesRepository>();
-            services.AddScoped<IDbConnection>((sp) => new NpgsqlConnection(Configuration.GetValue<string>("DB:ConnectionString")));
-
+            services.AddScoped<IDbConnection>((sp) =>
+                new NpgsqlConnection(Configuration.GetValue<string>("DB:ConnectionString")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

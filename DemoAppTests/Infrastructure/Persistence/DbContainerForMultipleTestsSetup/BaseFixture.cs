@@ -1,9 +1,13 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Containers.Builders;
 using DotNet.Testcontainers.Containers.Configurations.Databases;
+using DotNet.Testcontainers.Containers.Modules;
 using DotNet.Testcontainers.Containers.Modules.Databases;
+using DotNet.Testcontainers.Containers.OutputConsumers;
+using DotNet.Testcontainers.Containers.WaitStrategies;
 using Npgsql;
 using NUnit.Framework;
 
@@ -12,16 +16,23 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
     [SetUpFixture]
     public class BaseFixture
     {
-        private static string _pathToMigrations = "../../../../DemoApp/Infrastructure/Persistence/Migrations";
-        private static string _unixSocketAddr = "unix:/var/run/docker.sock";
-        private static string _pathToTestData = "../../../TestData/";
+        private const string PathToMigrations = "../../../../DemoApp/Infrastructure/Persistence/Migrations";
+        private const string UnixSocketAddr = "unix:/var/run/docker.sock";
+        private const string PathToTestData = "../../../TestData/";
+        private const string KeycloakWaitLogMsg = ".*services are lazy, passive or on-demand.*\\n";
+
+        private readonly string _importPath =
+            Path.GetDirectoryName(
+                Path.GetDirectoryName(Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory)));
+
         public static PostgreSqlTestcontainer PostgresContainer { get; private set; }
+        public static TestcontainersContainer KeycloakContainer { get; private set; }
 
         // use e.g. docker stats to have a live view of running containers
         [OneTimeSetUp]
         public async Task SetupOnce()
         {
-            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? _unixSocketAddr;
+            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? UnixSocketAddr;
 
             var postgresContainerBuilder = new TestcontainersBuilder<PostgreSqlTestcontainer>()
                 .WithDockerEndpoint(dockerEndpoint)
@@ -37,6 +48,31 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
 
             PostgresContainer = postgresContainerBuilder.Build();
 
+            using var consumer = Consume.RedirectStdoutAndStderrToStream(new MemoryStream(), new MemoryStream());
+            var keycloakContainerBuilder = new TestcontainersBuilder<TestcontainersContainer>()
+                .WithDockerEndpoint(dockerEndpoint)
+                .WithImage("jboss/keycloak:12.0.1")
+                .WithName("tc-Keycloak")
+                .WithPortBinding(8080)
+                .WithOutputConsumer(consumer)
+                .WithMount(_importPath +
+                           "/example-realm2.json",
+                    "/tmp/example-realm.json")
+                .WithCommand("-c standalone.xml",
+                    "-b 0.0.0.0",
+                    "-Dkeycloak.profile.feature.upload_scripts=enabled")
+                .WithEnvironment("KEYCLOAK_USER", "admin")
+                .WithEnvironment("KEYCLOAK_PASSWORD", "admin")
+                .WithEnvironment("KEYCLOAK_IMPORT",
+                    "/tmp/example-realm.json")
+                .WithWaitStrategy(
+                    Wait.ForUnixContainer()
+                        .UntilPortIsAvailable(8080)
+                        .UntilMessageIsLogged(consumer.Stdout, KeycloakWaitLogMsg))
+                .WithCleanUp(true);
+
+            KeycloakContainer = keycloakContainerBuilder.Build();
+            await KeycloakContainer.StartAsync();
             await PostgresContainer.StartAsync();
 
             FillDb();
@@ -48,7 +84,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
 
             var evolve = new Evolve.Evolve(conn, msg => Debug.WriteLine(msg))
             {
-                Locations = new[] {_pathToMigrations, _pathToTestData}
+                Locations = new[] {PathToMigrations, PathToTestData}
             };
             evolve.Migrate();
         }
@@ -56,8 +92,11 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
         [OneTimeTearDown]
         public async Task TeardownOnce()
         {
+            await KeycloakContainer.StopAsync();
+            await KeycloakContainer.DisposeAsync();
+
             await PostgresContainer.StopAsync();
-            await PostgresContainer.DisposeAsync(); //important for the event to cleanup!
+            await PostgresContainer.DisposeAsync(); //important for the event to cleanup to be fired!
         }
     }
 }
