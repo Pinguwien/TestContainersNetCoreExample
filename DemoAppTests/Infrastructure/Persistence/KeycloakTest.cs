@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Containers.Builders;
 using DotNet.Testcontainers.Containers.Modules;
 using DotNet.Testcontainers.Containers.OutputConsumers;
 using DotNet.Testcontainers.Containers.WaitStrategies;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace DemoAppTests.Infrastructure.Persistence
@@ -53,12 +59,26 @@ namespace DemoAppTests.Infrastructure.Persistence
         }
 
         [Test]
-        public async Task TempTestIfKeycloakStarted()
+        public async Task SucceedsWhenAccessTokenIsRequestedAndCanBeRead()
         {
-            //senseless for now, just to check via debug if it starts correctly when Message is logged via debug mode for now.
-            var expected = 0;
-            int i = 0;
-            Assert.That(i.Equals(expected));
+            var url = "http://localhost:8080/auth/realms/example/protocol/openid-connect/token";
+            var testParams = new Dictionary<string, string>();
+            testParams.Add("client_id", "demoClient");
+            testParams.Add("grant_type", "password");
+            testParams.Add("username", "user");
+            testParams.Add("password", "password");
+
+            var client = new HttpClient();
+            var response = await client.PostAsync(url, new FormUrlEncodedContent(testParams));
+            Assert.That(response.IsSuccessStatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            var json = (JObject)JsonConvert.DeserializeObject(content);
+            string tokenString = json["access_token"].Value<string>();
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(tokenString);
+            var username = token.Claims.First(claim => claim.Type == "preferred_username").Value;
+            Assert.That(username, Is.EqualTo("user"));
         }
 
         [TearDown]
@@ -67,5 +87,32 @@ namespace DemoAppTests.Infrastructure.Persistence
             await KeycloakContainer.StopAsync();
             await KeycloakContainer.DisposeAsync();
         }
+    }
+
+    class TokenContainer
+    {
+        [JsonProperty("access_token")]
+        public string AccessToken { get; set; }
+        
+        [JsonProperty("expires_in")]
+        public int ExpiresIn { get; set; }
+        
+        [JsonProperty("refresh_expires_in")]
+        public int RefreshExpiresIn { get; set; }
+        
+        [JsonProperty("refresh_token")]
+        public string RefreshToken { get; set; }
+        
+        [JsonProperty("token_type")]
+        public string TokenType { get; set; }
+        
+        [JsonProperty("not-before-policy")]
+        public int NotBeforePolicy { get; set; }
+        
+        [JsonProperty("session_state")]
+        public string SessionState { get; set; }
+        
+        [JsonProperty("scope")]
+        public string Scope { get; set; }
     }
 }
