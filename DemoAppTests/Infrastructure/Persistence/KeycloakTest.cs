@@ -13,13 +13,14 @@ namespace DemoAppTests.Infrastructure.Persistence
     {
         public static TestcontainersContainer KeycloakContainer { get; private set; }
 
-        private static string _unixSocketAddr = "unix:/var/run/docker.sock";
-        private static string waitLogMsg = ".*services are lazy, passive or on-demand.*\\n";
-        
+        private const string UnixSocketAddr = "unix:/var/run/docker.sock";
+        private const string WaitLogMsg = ".*services are lazy, passive or on-demand.*\\n";
+        private readonly string _importPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory)));
+
         [SetUp]
         public async Task SetUp()
         {
-            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? _unixSocketAddr;
+            var dockerEndpoint = Environment.GetEnvironmentVariable("DOCKER_HOST") ?? UnixSocketAddr;
             using var consumer = Consume.RedirectStdoutAndStderrToStream(new MemoryStream(), new MemoryStream());
             
             var keycloakContainerBuilder = new TestcontainersBuilder<TestcontainersContainer>()
@@ -28,7 +29,8 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithName("tc-Keycloak")
                 .WithPortBinding(8080)
                 .WithOutputConsumer(consumer)
-                .WithMount("/Users/dguhr/git/TestContainersDemo/DemoAppTests/example-realm2.json",
+                .WithMount(_importPath +
+                    "/example-realm2.json",
                     "/tmp/example-realm.json")
                 .WithCommand("-c standalone.xml",
                     "-b 0.0.0.0",
@@ -40,7 +42,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
                         .UntilPortIsAvailable(8080)
-                        .UntilMessageIsLogged(consumer.Stdout, waitLogMsg))
+                        .UntilMessageIsLogged(consumer.Stdout, WaitLogMsg))
                 .WithCleanUp(true);
 
             KeycloakContainer = keycloakContainerBuilder.Build();
