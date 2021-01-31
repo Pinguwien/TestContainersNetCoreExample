@@ -27,7 +27,8 @@ namespace DemoAppTests.Infrastructure.Persistence
                     Username = "postgres",
                     Password = "postgres",
                 })
-                .WithImage("postgres:13.1-alpine").WithCleanUp(true);
+                .WithImage("postgres:13.1-alpine")
+                .WithCleanUp(true);
 
             PostgresContainer = postgresBuilder.Build();
 
