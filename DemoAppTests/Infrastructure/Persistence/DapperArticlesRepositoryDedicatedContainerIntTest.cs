@@ -95,7 +95,7 @@ namespace DemoAppTests.Infrastructure.Persistence
             await PostgresContainer.StopAsync();
             await PostgresContainer.DisposeAsync();
         }
-        
+
         private void FillDb()
         {
             var conn = new NpgsqlConnection(PostgresContainer.ConnectionString);

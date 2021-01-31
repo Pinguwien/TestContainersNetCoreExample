@@ -11,10 +11,10 @@ namespace DemoAppTests.Infrastructure.Persistence
 {
     public class KeycloakTest
     {
-        public static TestcontainersContainer KeycloakContainer { get; private set; }
+        private static TestcontainersContainer KeycloakContainer { get; set; }
 
         private const string UnixSocketAddr = "unix:/var/run/docker.sock";
-        private const string WaitLogMsg = ".*services are lazy, passive or on-demand.*\\n";
+        private const string KeycloakWaitLogMsg = ".*services are lazy, passive or on-demand.*\\n";
 
         private readonly string _importPath =
             Path.GetDirectoryName(
@@ -45,7 +45,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
                         .UntilPortIsAvailable(8080)
-                        .UntilMessageIsLogged(consumer.Stdout, WaitLogMsg))
+                        .UntilMessageIsLogged(consumer.Stdout, KeycloakWaitLogMsg))
                 .WithCleanUp(true);
 
             KeycloakContainer = keycloakContainerBuilder.Build();
