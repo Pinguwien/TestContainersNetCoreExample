@@ -29,15 +29,15 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithName("tc-Keycloak")
                 .WithPortBinding(8080)
                 .WithOutputConsumer(consumer)
-                .WithMount("/Users/dguhr/git/TestContainersDemo/DemoAppTests/example-realm.json",
+                .WithMount("/Users/dguhr/git/TestContainersDemo/DemoAppTests/example-realm2.json",
                     "/tmp/example-realm.json")
                 .WithCommand("-c standalone.xml",
                     "-b 0.0.0.0",
                     "-Dkeycloak.profile.feature.upload_scripts=enabled")
                 .WithEnvironment("KEYCLOAK_USER", "admin")
                 .WithEnvironment("KEYCLOAK_PASSWORD", "admin")
-                //.WithEnvironment("KEYCLOAK_IMPORT",
-                    //"/Users/dguhr/git/TestContainersDemo/DemoAppTests/example-realm.json")
+                .WithEnvironment("KEYCLOAK_IMPORT",
+                    "/tmp/example-realm.json")
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
                         .UntilPortIsAvailable(8080)
@@ -50,7 +50,7 @@ namespace DemoAppTests.Infrastructure.Persistence
 
         [Test]
         public async Task TempTestIfKeycloakStarted()
-        {   //senseless, just to check via debug if it starts correctly when Message is logged via debug mode for now.
+        {   //senseless for now, just to check via debug if it starts correctly when Message is logged via debug mode for now.
             var expected = 0;
             int i = 0;
             Assert.That(i.Equals(expected));
