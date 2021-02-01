@@ -53,7 +53,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
                 .WithDockerEndpoint(dockerEndpoint)
                 .WithImage("jboss/keycloak:12.0.1")
                 .WithName("tc-Keycloak")
-                .WithPortBinding(8080)
+                .WithPortBinding(8443)
                 .WithOutputConsumer(consumer)
                 .WithMount(_importPath +
                            "/example-realm2.json",
@@ -67,7 +67,7 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
                     "/tmp/example-realm.json")
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
-                        .UntilPortIsAvailable(8080)
+                        .UntilPortIsAvailable(8443)
                         .UntilMessageIsLogged(consumer.Stdout, KeycloakWaitLogMsg))
                 .WithCleanUp(true);
 

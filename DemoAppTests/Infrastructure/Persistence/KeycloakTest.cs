@@ -36,7 +36,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithDockerEndpoint(dockerEndpoint)
                 .WithImage("jboss/keycloak:12.0.1")
                 .WithName("tc-Keycloak")
-                .WithPortBinding(8080)
+                .WithPortBinding(8443)
                 .WithOutputConsumer(consumer)
                 .WithMount(_importPath +
                            "/example-realm2.json",
@@ -50,7 +50,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                     "/tmp/example-realm.json")
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
-                        .UntilPortIsAvailable(8080)
+                        .UntilPortIsAvailable(8443)
                         .UntilMessageIsLogged(consumer.Stdout, KeycloakWaitLogMsg))
                 .WithCleanUp(true);
 
@@ -61,19 +61,26 @@ namespace DemoAppTests.Infrastructure.Persistence
         [Test]
         public async Task SucceedsWhenAccessTokenIsRequestedAndCanBeRead()
         {
-            var url = "http://localhost:8080/auth/realms/example/protocol/openid-connect/token";
-            var testParams = new Dictionary<string, string>();
-            testParams.Add("client_id", "demoClient");
-            testParams.Add("grant_type", "password");
-            testParams.Add("username", "user");
-            testParams.Add("password", "password");
+            const string url = "https://localhost:8443/auth/realms/example/protocol/openid-connect/token";
+            var testParams = new Dictionary<string, string>
+            {
+                {"client_id", "demoClient"},
+                {"grant_type", "password"},
+                {"username", "user"},
+                {"password", "password"}
+            };
 
-            var client = new HttpClient();
+            using var httpClientHandler = new HttpClientHandler();
+            httpClientHandler.ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
+            using var client = new HttpClient(httpClientHandler);
+
             var response = await client.PostAsync(url, new FormUrlEncodedContent(testParams));
             Assert.That(response.IsSuccessStatusCode);
 
             var content = await response.Content.ReadAsStringAsync();
-            var json = (JObject)JsonConvert.DeserializeObject(content);
+            var json = (JObject) JsonConvert.DeserializeObject(content);
             string tokenString = json["access_token"].Value<string>();
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(tokenString);
