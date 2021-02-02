@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Containers.Builders;
 using DotNet.Testcontainers.Containers.Configurations.Databases;
@@ -8,6 +10,8 @@ using DotNet.Testcontainers.Containers.Modules;
 using DotNet.Testcontainers.Containers.Modules.Databases;
 using DotNet.Testcontainers.Containers.OutputConsumers;
 using DotNet.Testcontainers.Containers.WaitStrategies;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Npgsql;
 using NUnit.Framework;
 
@@ -16,6 +20,7 @@ namespace DemoAppTests.Api
     [SetUpFixture]
     public class BaseFixture
     {
+        public string TestToken { get; private set; }
         private const string PathToMigrations = "../../../../DemoApp/Infrastructure/Persistence/Migrations";
         private const string UnixSocketAddr = "unix:/var/run/docker.sock";
         private const string PathToTestData = "../../../TestData/";
@@ -58,7 +63,7 @@ namespace DemoAppTests.Api
                 .WithPortBinding(8443)
                 .WithOutputConsumer(consumer)
                 .WithMount(_importPath +
-                           "/example-realm2.json",
+                           "/example-realm.json",
                     "/tmp/example-realm.json")
                 .WithCommand("-c standalone.xml",
                     "-b 0.0.0.0",
@@ -74,10 +79,43 @@ namespace DemoAppTests.Api
                 .WithCleanUp(true);
 
             KeycloakContainer = keycloakContainerBuilder.Build();
+            
             await KeycloakContainer.StartAsync();
             await PostgresContainer.StartAsync();
 
+            await GetTestToken();
+
             FillDb();
+        }
+
+        private async Task GetTestToken()
+        {
+            const string url = "https://localhost:8443/auth/realms/example/protocol/openid-connect/token";
+            var testParams = new Dictionary<string, string>
+            {
+                {"client_id", "demoClient"},
+                {"grant_type", "password"},
+                {"username", "user"},
+                {"password", "password"}
+            };
+
+            using var httpClientHandler = new HttpClientHandler();
+            httpClientHandler.ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
+            using var client = new HttpClient(httpClientHandler);
+
+            var response = await client.PostAsync(url, new FormUrlEncodedContent(testParams));
+            Assert.That(response.IsSuccessStatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            var json = (JObject) JsonConvert.DeserializeObject(content);
+            
+            if (json != null)
+            {
+                var tokenString = (json["access_token"] ?? "Not available").Value<string>();
+                TestToken = tokenString;
+            }
         }
 
         private void FillDb()

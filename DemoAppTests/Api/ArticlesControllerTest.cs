@@ -14,7 +14,6 @@ namespace DemoAppTests.Api
         [Test]
         public async Task SucceedsWhenGetRequestReturnsListOfArticles()
         {
-            //given
             var inMemorySettings = new Dictionary<string, string>
             {
                 {
@@ -32,15 +31,13 @@ namespace DemoAppTests.Api
             using var client = server.CreateClient();
             const string url = "https://localhost:5001/api/Articles";
 
-            //when
             var response = await client.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
 
-            //then
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
-        [Test]
+        /*[Test]
         public async Task SucceedsWhenCallToProtectedResourceWithoutTokenReturns401()
         {
         }
@@ -48,6 +45,6 @@ namespace DemoAppTests.Api
         [Test]
         public async Task SucceedsWhenCallToProtectedResourceWithTokenReturnsArticles()
         {
-        }
+        }*/
     }
 }

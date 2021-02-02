@@ -26,7 +26,7 @@ namespace DemoApp.Bootstrap
             services.AddScoped<IArticlesRepository, DapperArticlesRepository>();
             services.AddScoped<IDbConnection>((sp) =>
                 new NpgsqlConnection(Configuration.GetValue<string>("DB:ConnectionString")));
-            
+
             services.AddControllers();
         }
 

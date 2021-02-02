@@ -39,7 +39,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithPortBinding(8443)
                 .WithOutputConsumer(consumer)
                 .WithMount(_importPath +
-                           "/example-realm2.json",
+                           "/example-realm.json",
                     "/tmp/example-realm.json")
                 .WithCommand("-c standalone.xml",
                     "-b 0.0.0.0",
