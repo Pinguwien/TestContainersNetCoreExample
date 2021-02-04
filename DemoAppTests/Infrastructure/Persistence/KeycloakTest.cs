@@ -61,7 +61,7 @@ namespace DemoAppTests.Infrastructure.Persistence
         [Test]
         public async Task SucceedsWhenAccessTokenIsRequestedAndCanBeRead()
         {
-            const string url = "https://localhost:8443/auth/realms/example/protocol/openid-connect/token";
+            var url = "https://"+ KeycloakContainer.Hostname +":8443"+"/auth/realms/example/protocol/openid-connect/token";
             var testParams = new Dictionary<string, string>
             {
                 {"client_id", "demoClient"},
@@ -70,9 +70,12 @@ namespace DemoAppTests.Infrastructure.Persistence
                 {"password", "password"}
             };
 
-            using var httpClientHandler = new HttpClientHandler();
-            httpClientHandler.ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            //Apparently, I need this in TestServers HttpClient.
+            using var httpClientHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
 
             using var client = new HttpClient(httpClientHandler);
 
@@ -81,7 +84,7 @@ namespace DemoAppTests.Infrastructure.Persistence
 
             var content = await response.Content.ReadAsStringAsync();
             var json = (JObject) JsonConvert.DeserializeObject(content);
-            string tokenString = json["access_token"].Value<string>();
+            var tokenString = json["access_token"].Value<string>();
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(tokenString);
             var username = token.Claims.First(claim => claim.Type == "preferred_username").Value;

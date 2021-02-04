@@ -20,7 +20,7 @@ namespace DemoAppTests.Api
     [SetUpFixture]
     public class BaseFixture
     {
-        public string TestToken { get; private set; }
+        public static string TestToken { get; private set; }
         private const string PathToMigrations = "../../../../DemoApp/Infrastructure/Persistence/Migrations";
         private const string UnixSocketAddr = "unix:/var/run/docker.sock";
         private const string PathToTestData = "../../../TestData/";
@@ -90,7 +90,7 @@ namespace DemoAppTests.Api
 
         private async Task GetTestToken()
         {
-            const string url = "https://localhost:8443/auth/realms/example/protocol/openid-connect/token";
+            var url = "https://"+KeycloakContainer.Hostname+":8443/auth/realms/example/protocol/openid-connect/token";
             var testParams = new Dictionary<string, string>
             {
                 {"client_id", "demoClient"},

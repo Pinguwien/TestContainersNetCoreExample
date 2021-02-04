@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DemoApp.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -32,6 +33,16 @@ namespace DemoApp.Api
             return Ok(result);
         }
 
+        [HttpGet("Protected")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Article>>> GetProtectedArticles()
+        {
+            Logger.LogDebug("Received a GET request for Protected Articles");
+
+            var result = await _articlesRepository.GetArticles();
+
+            return Ok(result);
+        }
         //getArticle ?name= ?price= ...
     }
 }
