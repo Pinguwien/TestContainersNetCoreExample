@@ -48,20 +48,6 @@ namespace DemoApp.Bootstrap
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsEnvironment("Testing"))
-            {
-                //Not working. Also IDX20803/IDX20804 error -> AuthenticationException.
-                // ErrorMsg: The remote certificate is invalid according to the validation procedure:
-                // RemoteCertificateNameMismatch, RemoteCertificateChainErrors
-
-                /*ServicePointManager.Expect100Continue = true;
-                  ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
-                                                       | SecurityProtocolType.Tls11
-                                                       | SecurityProtocolType.Tls12;
-                ServicePointManager.ServerCertificateValidationCallback += 
-                    (sender, certificate, chain, sslPolicyErrors) => true; */
-                app.UseDeveloperExceptionPage();
-            }
 
             if (env.IsDevelopment())
             {
