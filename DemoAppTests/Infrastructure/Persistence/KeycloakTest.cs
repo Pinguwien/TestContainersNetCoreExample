@@ -36,7 +36,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                 .WithDockerEndpoint(dockerEndpoint)
                 .WithImage("jboss/keycloak:12.0.1")
                 .WithName("tc-Keycloak")
-                .WithPortBinding(8443)
+                .WithPortBinding(8080)
                 .WithOutputConsumer(consumer)
                 .WithMount(_importPath +
                            "/example-realm.json",
@@ -50,7 +50,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                     "/tmp/example-realm.json")
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
-                        .UntilPortIsAvailable(8443)
+                        .UntilPortIsAvailable(8080)
                         .UntilMessageIsLogged(consumer.Stdout, KeycloakWaitLogMsg))
                 .WithCleanUp(true);
 
@@ -61,7 +61,7 @@ namespace DemoAppTests.Infrastructure.Persistence
         [Test]
         public async Task SucceedsWhenAccessTokenIsRequestedAndCanBeRead()
         {
-            var url = "https://"+ KeycloakContainer.Hostname +":8443"+"/auth/realms/example/protocol/openid-connect/token";
+            var url = "http://"+ KeycloakContainer.Hostname +":8080"+"/auth/realms/example/protocol/openid-connect/token";
             var testParams = new Dictionary<string, string>
             {
                 {"client_id", "demoClient"},

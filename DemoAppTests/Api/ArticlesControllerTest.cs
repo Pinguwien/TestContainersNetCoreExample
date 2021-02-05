@@ -24,7 +24,7 @@ namespace DemoAppTests.Api
             },
             {
                 "Jwt:Issuer",
-                "https://" + BaseFixture.KeycloakContainer.Hostname + ":8443/auth/realms/example"
+                "http://" + BaseFixture.KeycloakContainer.Hostname + ":8080/auth/realms/example"
             }
         };
 
@@ -65,7 +65,7 @@ namespace DemoAppTests.Api
         }
 
         [Test]
-        public async Task SucceedsWhenGetRequestWithTokenReturnsListOfArticles()
+        public async Task SucceedsWhenGetRequestWithValidAuthorizationHeaderReturnsListOfArticles()
         {
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(_testConfig)
@@ -73,18 +73,6 @@ namespace DemoAppTests.Api
 
             var webHostBuilder = new WebHostBuilder().UseConfiguration(configuration).UseEnvironment("Testing")
                 .UseStartup<Startup>();
-            //not working because TestClient does not use this HttpClient (or to be precise: JwtMiddleware does not use it)
-            /*.ConfigureTestServices(services => 
-                    services.AddHttpClient("TestClient", httpClient =>
-                    {
-                    }).ConfigurePrimaryHttpMessageHandler(() =>
-                    {
-                        var handler = new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                        };
-                        return handler;
-                    }));*/
 
             using var server = new TestServer(webHostBuilder);
             using var client = server.CreateClient();
