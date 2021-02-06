@@ -1,11 +1,16 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using DemoApp.Bootstrap;
+using DemoApp.Domain;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace DemoAppTests.Api
@@ -28,6 +33,10 @@ namespace DemoAppTests.Api
             }
         };
 
+        private const string OpenEndpoint = "https://localhost:5001/api/Articles";
+
+        private const string ProtectedEndpoint = "https://localhost:5001/api/Articles/Protected";
+
         [Test]
         public async Task SucceedsWhenGetRequestReturnsListOfArticles()
         {
@@ -38,11 +47,11 @@ namespace DemoAppTests.Api
             var webHostBuilder = new WebHostBuilder().UseConfiguration(configuration).UseStartup<Startup>();
             using var server = new TestServer(webHostBuilder);
             using var client = server.CreateClient();
-            const string url = "https://localhost:5001/api/Articles";
 
-            var response = await client.GetAsync(url);
-            var content = await response.Content.ReadAsStringAsync();
-
+            var response = await client.GetAsync(OpenEndpoint);
+            var result = JsonConvert.DeserializeObject<List<Article>>(await response.Content.ReadAsStringAsync());            
+            
+            Assert.That(result.First().Name, Is.EqualTo("article1"));
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -56,10 +65,8 @@ namespace DemoAppTests.Api
             var webHostBuilder = new WebHostBuilder().UseConfiguration(configuration).UseStartup<Startup>();
             using var server = new TestServer(webHostBuilder);
             using var client = server.CreateClient();
-            const string url = "https://localhost:5001/api/Articles/Protected";
 
-            var response = await client.GetAsync(url);
-            var content = await response.Content.ReadAsStringAsync();
+            var response = await client.GetAsync(ProtectedEndpoint);
 
             Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -73,18 +80,6 @@ namespace DemoAppTests.Api
 
             var webHostBuilder = new WebHostBuilder().UseConfiguration(configuration).UseEnvironment("Testing")
                 .UseStartup<Startup>();
-            //not working because TestClient does not use this HttpClient (or to be precise: JwtMiddleware does not use it)
-            /*.ConfigureTestServices(services => 
-                    services.AddHttpClient("TestClient", httpClient =>
-                    {
-                    }).ConfigurePrimaryHttpMessageHandler(() =>
-                    {
-                        var handler = new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                        };
-                        return handler;
-                    }));*/
 
             using var server = new TestServer(webHostBuilder);
             using var client = server.CreateClient();
@@ -92,12 +87,36 @@ namespace DemoAppTests.Api
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", BaseFixture.TestToken);
 
-            const string url = "https://localhost:5001/api/Articles/Protected";
 
-            var response = await client.GetAsync(url);
-            var content = await response.Content.ReadAsStringAsync();
-
+            var response = await client.GetAsync(ProtectedEndpoint);
+            var result = JsonConvert.DeserializeObject<List<Article>>(await response.Content.ReadAsStringAsync());            
+            
+            Assert.That(result.First().Name, Is.EqualTo("article1"));
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        }
+        
+        //error on middleware backchannel request to identity server for getting configuration
+        //when self-signed certs are not supported in env. 
+        [Test]
+        public void SucceedsWhenInvalidOperationExceptionIsThrownWhenNotInTestingEnvironment()
+        {
+            IConfiguration configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(_testConfig)
+                .Build();
+
+            var webHostBuilder = new WebHostBuilder().UseConfiguration(configuration)
+                .UseStartup<Startup>();
+
+            Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                using var server = new TestServer(webHostBuilder);
+                using var client = server.CreateClient();
+
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", BaseFixture.TestToken);
+                await client.GetAsync(ProtectedEndpoint);
+            });
+
         }
     }
 }

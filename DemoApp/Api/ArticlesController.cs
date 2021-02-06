@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 
 namespace DemoApp.Api
 {
-    //TODO    [Route("api/[controller]")]
     [ApiController]
     [Route("api/[controller]")]
     public class ArticlesController : Controller
@@ -23,7 +22,6 @@ namespace DemoApp.Api
             this.Logger = logger;
         }
 
-        //getArticles
         public async Task<ActionResult<IEnumerable<Article>>> GetArticles()
         {
             Logger.LogDebug("Received a GET request for All Articles");
@@ -43,6 +41,5 @@ namespace DemoApp.Api
 
             return Ok(result);
         }
-        //getArticle ?name= ?price= ...
     }
 }

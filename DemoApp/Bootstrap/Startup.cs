@@ -1,4 +1,5 @@
 using System.Data;
+using System.Net.Http;
 using DemoApp.Bootstrap.Jwt;
 using DemoApp.Domain;
 using DemoApp.Infrastructure.Persistence;
@@ -16,10 +17,12 @@ namespace DemoApp.Bootstrap
     public class Startup
     {
         public IConfiguration Configuration { get; }
+        private IWebHostEnvironment CurrentEnv { get; }
 
-        public Startup(IConfiguration configuration)
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
             Configuration = configuration;
+            CurrentEnv = env;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -29,6 +32,14 @@ namespace DemoApp.Bootstrap
                 options.Audience = Configuration["Jwt:Audience"];
                 options.Authority = Configuration["Jwt:Issuer"];
                 options.TokenValidationParameters.ValidIssuer = options.Authority;
+
+                if (CurrentEnv.IsEnvironment("Testing"))
+                {
+                    options.BackchannelHttpHandler = new HttpClientHandler()
+                    {
+                        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                    };
+                }
             });
 
             services.ConfigureJwtAuthorization();
@@ -48,21 +59,6 @@ namespace DemoApp.Bootstrap
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsEnvironment("Testing"))
-            {
-                //Not working. Also IDX20803/IDX20804 error -> AuthenticationException.
-                // ErrorMsg: The remote certificate is invalid according to the validation procedure:
-                // RemoteCertificateNameMismatch, RemoteCertificateChainErrors
-
-                /*ServicePointManager.Expect100Continue = true;
-                  ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
-                                                       | SecurityProtocolType.Tls11
-                                                       | SecurityProtocolType.Tls12;
-                ServicePointManager.ServerCertificateValidationCallback += 
-                    (sender, certificate, chain, sslPolicyErrors) => true; */
-                app.UseDeveloperExceptionPage();
-            }
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
