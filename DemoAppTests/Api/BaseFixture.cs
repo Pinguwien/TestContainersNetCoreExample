@@ -84,7 +84,6 @@ namespace DemoAppTests.Api
             await PostgresContainer.StartAsync();
 
             await GetTestToken();
-
             FillDb();
         }
 

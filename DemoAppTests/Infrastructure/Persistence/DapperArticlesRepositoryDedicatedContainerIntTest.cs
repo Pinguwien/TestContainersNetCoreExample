@@ -12,7 +12,7 @@ using NUnit.Framework;
 
 namespace DemoAppTests.Infrastructure.Persistence
 {
-    public class DapperArticlesRepositoryIntTest
+    public class DapperArticlesRepositoryDedicatedContainerIntTest
     {
         private PostgreSqlTestcontainer PostgresContainer { get; set; }
         private static string _pathToMigrations = "../../../../DemoApp/Infrastructure/Persistence/Migrations";

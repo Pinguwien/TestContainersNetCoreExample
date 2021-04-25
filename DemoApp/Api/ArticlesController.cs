@@ -19,7 +19,7 @@ namespace DemoApp.Api
         public ArticlesController(IArticlesRepository articlesRepository, ILogger<ArticlesController> logger)
         {
             _articlesRepository = articlesRepository;
-            this.Logger = logger;
+            Logger = logger;
         }
 
         public async Task<ActionResult<IEnumerable<Article>>> GetArticles()
