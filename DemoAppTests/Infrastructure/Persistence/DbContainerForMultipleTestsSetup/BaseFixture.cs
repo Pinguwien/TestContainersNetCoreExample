@@ -37,7 +37,6 @@ namespace DemoAppTests.Infrastructure.Persistence.DbContainerForMultipleTestsSet
                 .WithCleanUp(true);
 
             PostgresContainer = postgresContainerBuilder.Build();
-
             await PostgresContainer.StartAsync();
 
             FillDb();

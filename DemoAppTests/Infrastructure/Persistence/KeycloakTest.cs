@@ -70,6 +70,7 @@ namespace DemoAppTests.Infrastructure.Persistence
                 {"password", "password"}
             };
 
+            //Apparently, I need this in TestServers HttpClient.
             using var httpClientHandler = new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback =
